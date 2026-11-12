@@ -1,0 +1,27 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Secrets and env
+.env
+
+# Data, models, indexes
+data/uploads/*
+data/indexes/*
+!data/uploads/.gitkeep
+!data/indexes/.gitkeep
+*.faiss
+*.index
+.cache/
+models/
+
+# OS / IDE
+.DS_Store
+.idea/
