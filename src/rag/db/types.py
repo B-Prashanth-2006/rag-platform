@@ -21,4 +21,3 @@ JOB_STATUS_ENUM: SAEnum = SAEnum(
     create_constraint=True,
     validate_strings=True,
 )
-

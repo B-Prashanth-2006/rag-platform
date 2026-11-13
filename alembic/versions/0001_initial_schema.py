@@ -8,26 +8,32 @@ Create Date: 2026-11-13 00:00:00.000000
 
 from __future__ import annotations
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "0001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 # PostgreSQL native enum types
 _document_status = postgresql.ENUM(
-    "pending", "processing", "ready", "failed",
+    "pending",
+    "processing",
+    "ready",
+    "failed",
     name="document_status",
     create_type=False,
 )
 _job_status = postgresql.ENUM(
-    "queued", "running", "succeeded", "failed",
+    "queued",
+    "running",
+    "succeeded",
+    "failed",
     name="job_status",
     create_type=False,
 )
@@ -47,7 +53,10 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "processing", "ready", "failed",
+                "pending",
+                "processing",
+                "ready",
+                "failed",
                 name="document_status",
                 create_constraint=True,
             ),
@@ -108,7 +117,10 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "queued", "running", "succeeded", "failed",
+                "queued",
+                "running",
+                "succeeded",
+                "failed",
                 name="job_status",
                 create_constraint=True,
             ),
@@ -153,4 +165,3 @@ def downgrade() -> None:
 
     _job_status.drop(op.get_bind(), checkfirst=True)
     _document_status.drop(op.get_bind(), checkfirst=True)
-

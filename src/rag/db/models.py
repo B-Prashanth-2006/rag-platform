@@ -119,9 +119,7 @@ class IngestionJobOrm(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    document: Mapped[DocumentOrm] = relationship(
-        "DocumentOrm", back_populates="ingestion_jobs"
-    )
+    document: Mapped[DocumentOrm] = relationship("DocumentOrm", back_populates="ingestion_jobs")
 
 
 class QueryLogOrm(Base):
@@ -144,4 +142,3 @@ class QueryLogOrm(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-

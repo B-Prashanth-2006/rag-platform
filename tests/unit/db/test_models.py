@@ -32,18 +32,21 @@ def test_document_orm_primary_key() -> None:
 def test_document_orm_columns_present() -> None:
     mapper = inspect(DocumentOrm)
     col_names = {c.key for c in mapper.column_attrs}
-    assert col_names >= {"id", "filename", "content_hash", "status", "doc_metadata", "created_at", "updated_at"}
+    expected = {
+        "id",
+        "filename",
+        "content_hash",
+        "status",
+        "doc_metadata",
+        "created_at",
+        "updated_at",
+    }
+    assert col_names >= expected
 
 
 def test_document_orm_content_hash_unique() -> None:
     table = Base.metadata.tables["documents"]
-    unique_cols = {
-        col.name
-        for uc in table.constraints
-        if hasattr(uc, "columns")
-        for col in uc.columns
-        if hasattr(uc, "_type") or type(uc).__name__ == "UniqueConstraint"
-    }
+
     # Check via the column's unique flag
     content_hash_col = table.c["content_hash"]
     assert content_hash_col.unique
@@ -66,8 +69,14 @@ def test_chunk_orm_columns_present() -> None:
     mapper = inspect(ChunkOrm)
     col_names = {c.key for c in mapper.column_attrs}
     assert col_names >= {
-        "id", "document_id", "index", "text", "page",
-        "section", "token_count", "embedding_model_version",
+        "id",
+        "document_id",
+        "index",
+        "text",
+        "page",
+        "section",
+        "token_count",
+        "embedding_model_version",
     }
 
 
@@ -97,4 +106,3 @@ def test_query_log_retrieved_chunk_ids_is_array() -> None:
     table = Base.metadata.tables["query_logs"]
     col = table.c["retrieved_chunk_ids"]
     assert isinstance(col.type, ARRAY)
-

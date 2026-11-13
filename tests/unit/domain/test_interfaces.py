@@ -10,12 +10,12 @@ from rag.domain.entities import Chunk, Document, DocumentStatus, IngestionJob, J
 from rag.domain.interfaces import (
     ChunkRepository,
     DocumentRepository,
-    IngestionJobRepository,
+    JobRepository,
     QueryLogRepository,
 )
 
 # ---------------------------------------------------------------------------
-# Minimal in-memory stubs that satisfy each Protocol
+# Helpers
 # ---------------------------------------------------------------------------
 
 
@@ -80,16 +80,27 @@ class InMemoryDocumentRepository:
     def __init__(self) -> None:
         self._store: dict[uuid.UUID, Document] = {}
 
-    async def add(self, doc: Document) -> None:
+    def add(self, doc: Document) -> None:
         self._store[doc.id] = doc
 
-    async def get(self, doc_id: uuid.UUID) -> Document | None:
+    def get(self, doc_id: uuid.UUID) -> Document | None:
         return self._store.get(doc_id)
 
-    async def get_by_hash(self, content_hash: str) -> Document | None:
+    def get_by_hash(self, content_hash: str) -> Document | None:
         return next((d for d in self._store.values() if d.content_hash == content_hash), None)
 
-    async def update_status(self, doc_id: uuid.UUID, status: DocumentStatus) -> None:
+    def list(
+        self,
+        limit: int,
+        offset: int,
+        status: DocumentStatus | None = None,
+    ) -> list[Document]:
+        items = list(self._store.values())
+        if status is not None:
+            items = [d for d in items if d.status == status]
+        return items[offset : offset + limit]
+
+    def update_status(self, doc_id: uuid.UUID, status: DocumentStatus) -> None:
         if doc_id in self._store:
             existing = self._store[doc_id]
             self._store[doc_id] = Document(
@@ -102,48 +113,97 @@ class InMemoryDocumentRepository:
                 updated_at=_now(),
             )
 
-    async def list_all(self, limit: int, offset: int) -> list[Document]:
-        items = list(self._store.values())
-        return items[offset : offset + limit]
+    def delete(self, doc_id: uuid.UUID) -> None:
+        self._store.pop(doc_id, None)
 
 
 class InMemoryChunkRepository:
     def __init__(self) -> None:
         self._store: list[Chunk] = []
 
-    async def add_many(self, chunks: list[Chunk]) -> None:
+    def add_many(self, chunks: list[Chunk]) -> None:
         self._store.extend(chunks)
 
-    async def get_by_document(self, document_id: uuid.UUID) -> list[Chunk]:
+    def list_by_document(self, document_id: uuid.UUID) -> list[Chunk]:
         return [c for c in self._store if c.document_id == document_id]
 
-    async def delete_by_document(self, document_id: uuid.UUID) -> None:
+    def delete_by_document(self, document_id: uuid.UUID) -> None:
         self._store = [c for c in self._store if c.document_id != document_id]
 
+    def count_by_model_version(self, version: str) -> int:
+        return sum(1 for c in self._store if c.embedding_model_version == version)
 
-class InMemoryIngestionJobRepository:
+
+class InMemoryJobRepository:
     def __init__(self) -> None:
         self._store: dict[uuid.UUID, IngestionJob] = {}
 
-    async def add(self, job: IngestionJob) -> None:
+    def create(self, job: IngestionJob) -> None:
         self._store[job.id] = job
 
-    async def get(self, job_id: uuid.UUID) -> IngestionJob | None:
+    def get(self, job_id: uuid.UUID) -> IngestionJob | None:
         return self._store.get(job_id)
 
-    async def update(self, job: IngestionJob) -> None:
-        self._store[job.id] = job
+    def mark_running(self, job_id: uuid.UUID, started_at: datetime) -> None:
+        job = self._store.get(job_id)
+        if job is not None:
+            self._store[job_id] = IngestionJob(
+                id=job.id,
+                document_id=job.document_id,
+                status=JobStatus.RUNNING,
+                error=job.error,
+                started_at=started_at,
+                finished_at=job.finished_at,
+            )
+
+    def mark_succeeded(self, job_id: uuid.UUID, finished_at: datetime) -> None:
+        job = self._store.get(job_id)
+        if job is not None:
+            self._store[job_id] = IngestionJob(
+                id=job.id,
+                document_id=job.document_id,
+                status=JobStatus.SUCCEEDED,
+                error=job.error,
+                started_at=job.started_at,
+                finished_at=finished_at,
+            )
+
+    def mark_failed(self, job_id: uuid.UUID, error: str, finished_at: datetime) -> None:
+        job = self._store.get(job_id)
+        if job is not None:
+            self._store[job_id] = IngestionJob(
+                id=job.id,
+                document_id=job.document_id,
+                status=JobStatus.FAILED,
+                error=error,
+                started_at=job.started_at,
+                finished_at=finished_at,
+            )
 
 
 class InMemoryQueryLogRepository:
     def __init__(self) -> None:
         self._store: dict[uuid.UUID, QueryLog] = {}
 
-    async def add(self, log: QueryLog) -> None:
+    def add(self, log: QueryLog) -> None:
         self._store[log.id] = log
 
-    async def get(self, log_id: uuid.UUID) -> QueryLog | None:
-        return self._store.get(log_id)
+    def add_feedback(self, log_id: uuid.UUID, feedback: str) -> None:
+        log = self._store.get(log_id)
+        if log is not None:
+            self._store[log_id] = QueryLog(
+                id=log.id,
+                query=log.query,
+                retrieved_chunk_ids=log.retrieved_chunk_ids,
+                latency_ms=log.latency_ms,
+                answer=log.answer,
+                feedback=feedback,
+                created_at=log.created_at,
+            )
+
+    def list_recent(self, limit: int) -> list[QueryLog]:
+        items = sorted(self._store.values(), key=lambda q: q.created_at, reverse=True)
+        return items[:limit]
 
 
 # ---------------------------------------------------------------------------
@@ -152,11 +212,11 @@ class InMemoryQueryLogRepository:
 
 
 class IncompleteDocumentRepository:
-    """Missing update_status and list_all."""
+    """Missing list, update_status, and delete."""
 
-    async def add(self, doc: Document) -> None: ...
-    async def get(self, doc_id: uuid.UUID) -> Document | None: ...
-    async def get_by_hash(self, content_hash: str) -> Document | None: ...
+    def add(self, doc: Document) -> None: ...
+    def get(self, doc_id: uuid.UUID) -> Document | None: ...
+    def get_by_hash(self, content_hash: str) -> Document | None: ...
 
 
 # ---------------------------------------------------------------------------
@@ -183,10 +243,10 @@ class TestChunkRepositoryProtocol:
         assert isinstance(repo, ChunkRepository)
 
 
-class TestIngestionJobRepositoryProtocol:
+class TestJobRepositoryProtocol:
     def test_valid_stub_satisfies_protocol(self) -> None:
-        repo: Any = InMemoryIngestionJobRepository()
-        assert isinstance(repo, IngestionJobRepository)
+        repo: Any = InMemoryJobRepository()
+        assert isinstance(repo, JobRepository)
 
 
 class TestQueryLogRepositoryProtocol:
@@ -197,106 +257,174 @@ class TestQueryLogRepositoryProtocol:
 
 # ---------------------------------------------------------------------------
 # Tests: basic behavioural correctness of the in-memory stubs
-# (also validates the Protocol signatures are usable end-to-end)
 # ---------------------------------------------------------------------------
-
-import asyncio  # noqa: E402  (import after Protocol tests for clarity)
-
-
-def run(coro: Any) -> Any:
-    return asyncio.get_event_loop().run_until_complete(coro)
 
 
 class TestDocumentRepositoryBehaviour:
     def test_add_and_get(self) -> None:
         repo = InMemoryDocumentRepository()
         doc = _doc()
-        run(repo.add(doc))
-        result = run(repo.get(doc.id))
-        assert result == doc
+        repo.add(doc)
+        assert repo.get(doc.id) == doc
 
     def test_get_missing_returns_none(self) -> None:
         repo = InMemoryDocumentRepository()
-        assert run(repo.get(uuid.uuid4())) is None
+        assert repo.get(uuid.uuid4()) is None
 
     def test_get_by_hash(self) -> None:
         repo = InMemoryDocumentRepository()
         doc = _doc()
-        run(repo.add(doc))
-        result = run(repo.get_by_hash(doc.content_hash))
+        repo.add(doc)
+        result = repo.get_by_hash(doc.content_hash)
         assert result is not None
         assert result.id == doc.id
 
     def test_update_status(self) -> None:
         repo = InMemoryDocumentRepository()
         doc = _doc()
-        run(repo.add(doc))
-        run(repo.update_status(doc.id, DocumentStatus.READY))
-        updated = run(repo.get(doc.id))
+        repo.add(doc)
+        repo.update_status(doc.id, DocumentStatus.READY)
+        updated = repo.get(doc.id)
         assert updated is not None
         assert updated.status == DocumentStatus.READY
 
-    def test_list_all_pagination(self) -> None:
+    def test_list_pagination(self) -> None:
         repo = InMemoryDocumentRepository()
         for _ in range(5):
-            run(repo.add(_doc()))
-        page = run(repo.list_all(limit=2, offset=0))
+            repo.add(_doc())
+        page = repo.list(limit=2, offset=0)
         assert len(page) == 2
-        page2 = run(repo.list_all(limit=2, offset=2))
+        page2 = repo.list(limit=2, offset=2)
         assert len(page2) == 2
+
+    def test_list_status_filter(self) -> None:
+        repo = InMemoryDocumentRepository()
+        doc = _doc()
+        repo.add(doc)
+        repo.update_status(doc.id, DocumentStatus.READY)
+        # Only READY docs
+        ready = repo.list(limit=10, offset=0, status=DocumentStatus.READY)
+        assert all(d.status == DocumentStatus.READY for d in ready)
+        # PENDING filter returns nothing (we updated the only doc)
+        pending = repo.list(limit=10, offset=0, status=DocumentStatus.PENDING)
+        assert pending == []
+
+    def test_delete(self) -> None:
+        repo = InMemoryDocumentRepository()
+        doc = _doc()
+        repo.add(doc)
+        repo.delete(doc.id)
+        assert repo.get(doc.id) is None
 
 
 class TestChunkRepositoryBehaviour:
-    def test_add_many_and_get_by_document(self) -> None:
+    def test_add_many_and_list_by_document(self) -> None:
         repo = InMemoryChunkRepository()
         did = uuid.uuid4()
         chunks = [_chunk(did) for _ in range(3)]
-        run(repo.add_many(chunks))
-        result = run(repo.get_by_document(did))
-        assert len(result) == 3
+        repo.add_many(chunks)
+        assert len(repo.list_by_document(did)) == 3
 
     def test_delete_by_document(self) -> None:
         repo = InMemoryChunkRepository()
         did = uuid.uuid4()
-        run(repo.add_many([_chunk(did), _chunk(did)]))
-        run(repo.delete_by_document(did))
-        assert run(repo.get_by_document(did)) == []
+        repo.add_many([_chunk(did), _chunk(did)])
+        repo.delete_by_document(did)
+        assert repo.list_by_document(did) == []
 
-
-class TestIngestionJobRepositoryBehaviour:
-    def test_add_and_get(self) -> None:
-        repo = InMemoryIngestionJobRepository()
-        job = _job()
-        run(repo.add(job))
-        result = run(repo.get(job.id))
-        assert result == job
-
-    def test_update(self) -> None:
-        repo = InMemoryIngestionJobRepository()
-        job = _job()
-        run(repo.add(job))
-        updated_job = IngestionJob(
-            id=job.id,
-            document_id=job.document_id,
-            status=JobStatus.SUCCEEDED,
-            error=None,
-            started_at=job.started_at,
-            finished_at=_now(),
+    def test_count_by_model_version(self) -> None:
+        repo = InMemoryChunkRepository()
+        did = uuid.uuid4()
+        c1 = Chunk(
+            id=uuid.uuid4(),
+            document_id=did,
+            index=0,
+            text="a",
+            page=None,
+            section=None,
+            token_count=1,
+            embedding_model_version="v1",
         )
-        run(repo.update(updated_job))
-        result = run(repo.get(job.id))
+        c2 = Chunk(
+            id=uuid.uuid4(),
+            document_id=did,
+            index=1,
+            text="b",
+            page=None,
+            section=None,
+            token_count=1,
+            embedding_model_version="v2",
+        )
+        repo.add_many([c1, c2])
+        assert repo.count_by_model_version("v1") == 1
+        assert repo.count_by_model_version("v2") == 1
+        assert repo.count_by_model_version("v3") == 0
+
+
+class TestJobRepositoryBehaviour:
+    def test_create_and_get(self) -> None:
+        repo = InMemoryJobRepository()
+        job = _job()
+        repo.create(job)
+        assert repo.get(job.id) == job
+
+    def test_mark_running(self) -> None:
+        repo = InMemoryJobRepository()
+        job = _job()
+        repo.create(job)
+        ts = _now()
+        repo.mark_running(job.id, ts)
+        result = repo.get(job.id)
+        assert result is not None
+        assert result.status == JobStatus.RUNNING
+        assert result.started_at == ts
+
+    def test_mark_succeeded(self) -> None:
+        repo = InMemoryJobRepository()
+        job = _job()
+        repo.create(job)
+        ts = _now()
+        repo.mark_succeeded(job.id, ts)
+        result = repo.get(job.id)
         assert result is not None
         assert result.status == JobStatus.SUCCEEDED
+        assert result.finished_at == ts
+
+    def test_mark_failed(self) -> None:
+        repo = InMemoryJobRepository()
+        job = _job()
+        repo.create(job)
+        ts = _now()
+        repo.mark_failed(job.id, "oops", ts)
+        result = repo.get(job.id)
+        assert result is not None
+        assert result.status == JobStatus.FAILED
+        assert result.error == "oops"
+        assert result.finished_at == ts
+
+    def test_get_missing_returns_none(self) -> None:
+        repo = InMemoryJobRepository()
+        assert repo.get(uuid.uuid4()) is None
 
 
 class TestQueryLogRepositoryBehaviour:
-    def test_add_and_get(self) -> None:
+    def test_add_and_list_recent(self) -> None:
         repo = InMemoryQueryLogRepository()
         log = _qlog()
-        run(repo.add(log))
-        result = run(repo.get(log.id))
-        assert result == log
+        repo.add(log)
+        recent = repo.list_recent(limit=10)
+        assert log in recent
 
-    def test_get_missing_returns_none(self) -> None:
+    def test_list_recent_respects_limit(self) -> None:
         repo = InMemoryQueryLogRepository()
-        assert run(repo.get(uuid.uuid4())) is None
+        for _ in range(5):
+            repo.add(_qlog())
+        assert len(repo.list_recent(limit=3)) == 3
+
+    def test_add_feedback(self) -> None:
+        repo = InMemoryQueryLogRepository()
+        log = _qlog()
+        repo.add(log)
+        repo.add_feedback(log.id, "great answer")
+        result = repo.list_recent(limit=1)[0]
+        assert result.feedback == "great answer"

@@ -10,7 +10,7 @@ def test_settings_defaults() -> None:
     settings = Settings()
     assert settings.app_env == "dev"
     assert settings.log_level == "INFO"
-    assert settings.database_url == "postgresql+asyncpg://postgres:postgres@localhost:5432/rag"
+    assert settings.database_url == "postgresql+psycopg://postgres:postgres@localhost:5432/rag"
     assert settings.api_key == "dev-secret-key"
 
 
@@ -18,13 +18,13 @@ def test_settings_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
     """Settings should properly load values overridden by environment variables."""
     monkeypatch.setenv("APP_ENV", "prod")
     monkeypatch.setenv("LOG_LEVEL", "WARNING")
-    monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://user:pass@custom-host:5432/custom_db")
+    monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://user:pass@custom-host:5432/custom_db")
     monkeypatch.setenv("API_KEY", "prod-api-key-12345")
 
     settings = Settings()
     assert settings.app_env == "prod"
     assert settings.log_level == "WARNING"
-    assert settings.database_url == "postgresql+asyncpg://user:pass@custom-host:5432/custom_db"
+    assert settings.database_url == "postgresql+psycopg://user:pass@custom-host:5432/custom_db"
     assert settings.api_key == "prod-api-key-12345"
 
 
