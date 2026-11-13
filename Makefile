@@ -1,4 +1,4 @@
-.PHONY: install lint format typecheck test up down
+.PHONY: install lint format typecheck test up down migrate migrate-down migrate-history
 
 install:
 	uv sync --all-groups
@@ -23,3 +23,13 @@ up:
 down:
 	docker compose down
 
+# ── Alembic helpers ────────────────────────────────────────────────────────────
+
+migrate:
+	uv run alembic upgrade head
+
+migrate-down:
+	uv run alembic downgrade base
+
+migrate-history:
+	uv run alembic history --verbose
