@@ -52,14 +52,7 @@ def upgrade() -> None:
         sa.Column("content_hash", sa.String(64), nullable=False),
         sa.Column(
             "status",
-            sa.Enum(
-                "pending",
-                "processing",
-                "ready",
-                "failed",
-                name="document_status",
-                create_constraint=True,
-            ),
+            _document_status,
             nullable=False,
             server_default="pending",
         ),
@@ -116,14 +109,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "status",
-            sa.Enum(
-                "queued",
-                "running",
-                "succeeded",
-                "failed",
-                name="job_status",
-                create_constraint=True,
-            ),
+            _job_status,
             nullable=False,
             server_default="queued",
         ),
