@@ -91,3 +91,29 @@ class QueryLog:
     answer: str | None
     feedback: str | None
     created_at: datetime
+
+
+@dataclass
+class ExtractedPage:
+    """A single extracted page from a document.
+
+    Invariants:
+    - ``number`` must be >= 1
+    """
+
+    number: int
+    text: str
+    headings: list[str]
+    tables: list[str]
+
+    def __post_init__(self) -> None:
+        if self.number < 1:
+            raise ValueError(f"number must be >= 1, got {self.number}")
+
+
+@dataclass
+class ExtractedDocument:
+    """In-memory representation of an extracted document across its pages."""
+
+    pages: list[ExtractedPage]
+    metadata: dict[str, Any]

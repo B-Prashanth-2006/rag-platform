@@ -17,6 +17,11 @@ dependencies = [
     "sqlalchemy>=2.0",
     "alembic>=1.13",
     "psycopg[binary]>=3.1",
+    "pymupdf>=1.24.0",
+    "python-docx>=1.1.0",
+    "beautifulsoup4>=4.12.0",
+    "pytesseract>=0.3.10",
+    "pillow>=10.4.0",
 ]
 
 [dependency-groups]
@@ -70,9 +75,17 @@ module = "tests.*"
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-# alembic ships partial stubs; relax only for the migration scripts
-module = ["alembic.*", "mako.*"]
+# Third-party libraries without complete type annotations
+module = ["pymupdf.*", "docx.*", "bs4.*", "pytesseract.*", "PIL.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# pymupdf ships unannotated C-extension wrapper functions
+module = [
+    "rag.ingestion.extractors.pdf",
+    "tests.unit.ingestion.conftest",
+]
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

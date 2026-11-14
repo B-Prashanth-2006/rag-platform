@@ -13,7 +13,15 @@ import uuid
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
-from rag.domain.entities import Chunk, Document, DocumentStatus, IngestionJob, JobStatus, QueryLog
+from rag.domain.entities import (
+    Chunk,
+    Document,
+    DocumentStatus,
+    ExtractedDocument,
+    IngestionJob,
+    JobStatus,
+    QueryLog,
+)
 
 
 @runtime_checkable
@@ -113,10 +121,24 @@ class QueryLogRepository(Protocol):
         ...
 
 
+@runtime_checkable
+class Extractor(Protocol):
+    """Extraction contract for converting raw file bytes into structured documents."""
+
+    def supports(self, filename: str) -> bool:
+        """Return True if this extractor can handle the given filename/extension."""
+        ...
+
+    def extract(self, data: bytes, filename: str) -> ExtractedDocument:
+        """Extract pages, headings, tables and metadata from raw file bytes."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
     "ChunkRepository",
     "DocumentRepository",
+    "Extractor",
     "JobRepository",
     "JobStatus",
     "QueryLogRepository",

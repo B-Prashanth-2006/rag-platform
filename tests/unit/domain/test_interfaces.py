@@ -428,3 +428,33 @@ class TestQueryLogRepositoryBehaviour:
         repo.add_feedback(log.id, "great answer")
         result = repo.list_recent(limit=1)[0]
         assert result.feedback == "great answer"
+
+
+# ---------------------------------------------------------------------------
+# Extractor Protocol
+# ---------------------------------------------------------------------------
+
+
+class TestExtractorProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.entities import ExtractedDocument
+        from rag.domain.interfaces import Extractor
+
+        class DummyExtractor:
+            def supports(self, filename: str) -> bool:
+                return filename.endswith(".dummy")
+
+            def extract(self, data: bytes, filename: str) -> ExtractedDocument:
+                return ExtractedDocument(pages=[], metadata={})
+
+        dummy = DummyExtractor()
+        assert isinstance(dummy, Extractor)
+
+    def test_protocol_rejection_missing_methods(self) -> None:
+        from rag.domain.interfaces import Extractor
+
+        class IncompleteExtractor:
+            def supports(self, filename: str) -> bool:
+                return True
+
+        assert not isinstance(IncompleteExtractor(), Extractor)

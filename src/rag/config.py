@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     # Database connection-pool tuning
     db_pool_size: int = 5
     db_max_overflow: int = 10
+    # Ingestion limits
+    max_upload_mb: int = 50
 
 
 @lru_cache

@@ -12,6 +12,7 @@ def test_settings_defaults() -> None:
     assert settings.log_level == "INFO"
     assert settings.database_url == "postgresql+psycopg://postgres:postgres@localhost:5432/rag"
     assert settings.api_key == "dev-secret-key"
+    assert settings.max_upload_mb == 50
 
 
 def test_settings_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -20,12 +21,14 @@ def test_settings_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LOG_LEVEL", "WARNING")
     monkeypatch.setenv("DATABASE_URL", "postgresql+psycopg://user:pass@custom-host:5432/custom_db")
     monkeypatch.setenv("API_KEY", "prod-api-key-12345")
+    monkeypatch.setenv("MAX_UPLOAD_MB", "100")
 
     settings = Settings()
     assert settings.app_env == "prod"
     assert settings.log_level == "WARNING"
     assert settings.database_url == "postgresql+psycopg://user:pass@custom-host:5432/custom_db"
     assert settings.api_key == "prod-api-key-12345"
+    assert settings.max_upload_mb == 100
 
 
 def test_get_settings_cached() -> None:

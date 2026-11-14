@@ -261,3 +261,69 @@ class TestQueryLog:
     def test_id_is_uuid(self) -> None:
         log = _make_query_log()
         assert isinstance(log.id, uuid.UUID)
+
+
+# ---------------------------------------------------------------------------
+# ExtractedPage and ExtractedDocument
+# ---------------------------------------------------------------------------
+
+
+class TestExtractedPage:
+    def test_instantiation(self) -> None:
+        from rag.domain.entities import ExtractedPage
+
+        page = ExtractedPage(
+            number=1,
+            text="Sample page text",
+            headings=["Heading 1"],
+            tables=["Row 1 | Col 1"],
+        )
+        assert page.number == 1
+        assert page.text == "Sample page text"
+        assert page.headings == ["Heading 1"]
+        assert page.tables == ["Row 1 | Col 1"]
+
+    def test_number_must_be_positive(self) -> None:
+        from rag.domain.entities import ExtractedPage
+
+        with pytest.raises(ValueError, match="number must be >= 1"):
+            ExtractedPage(number=0, text="", headings=[], tables=[])
+
+        with pytest.raises(ValueError, match="number must be >= 1"):
+            ExtractedPage(number=-1, text="", headings=[], tables=[])
+
+
+class TestExtractedDocument:
+    def test_instantiation(self) -> None:
+        from rag.domain.entities import ExtractedDocument, ExtractedPage
+
+        page1 = ExtractedPage(number=1, text="Page 1", headings=[], tables=[])
+        page2 = ExtractedPage(number=2, text="Page 2", headings=[], tables=[])
+        doc = ExtractedDocument(pages=[page1, page2], metadata={"author": "Test"})
+
+        assert len(doc.pages) == 2
+        assert doc.metadata == {"author": "Test"}
+
+
+class TestIngestionErrors:
+    def test_file_too_large_error(self) -> None:
+        from rag.domain.errors import FileTooLargeError
+
+        err = FileTooLargeError(size_bytes=60_000_000, max_bytes=52_428_800)
+        assert err.size_bytes == 60_000_000
+        assert err.max_bytes == 52_428_800
+        assert "exceeds maximum allowed size" in str(err)
+
+    def test_unsupported_file_type_error(self) -> None:
+        from rag.domain.errors import UnsupportedFileTypeError
+
+        err = UnsupportedFileTypeError("bad.xyz")
+        assert err.filename == "bad.xyz"
+        assert "bad.xyz" in str(err)
+
+    def test_extraction_error(self) -> None:
+        from rag.domain.errors import ExtractionError
+
+        err = ExtractionError("Corrupt PDF file")
+        assert err.message == "Corrupt PDF file"
+        assert "Corrupt PDF file" in str(err)

@@ -47,3 +47,30 @@ class QueryLogNotFoundError(Exception):
     def __init__(self, log_id: uuid.UUID) -> None:
         self.log_id = log_id
         super().__init__(f"No query log found with id {log_id}.")
+
+
+class UnsupportedFileTypeError(Exception):
+    """Raised when an uploaded file's type or extension is not supported."""
+
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
+        super().__init__(f"Unsupported file type for {filename!r}.")
+
+
+class FileTooLargeError(Exception):
+    """Raised when an uploaded file exceeds the configured maximum upload size."""
+
+    def __init__(self, size_bytes: int, max_bytes: int) -> None:
+        self.size_bytes = size_bytes
+        self.max_bytes = max_bytes
+        super().__init__(
+            f"File size {size_bytes} bytes exceeds maximum allowed size of {max_bytes} bytes."
+        )
+
+
+class ExtractionError(Exception):
+    """Raised when an error occurs during extraction (corrupt, empty, or unreadable file)."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
