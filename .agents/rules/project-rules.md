@@ -16,3 +16,5 @@ trigger: always_on
 - Device selection for PyTorch must try cuda, then mps, then cpu.
 - Do not run Ollama or GPU workloads in Docker; reach the host via host.docker.internal.
 - Use named volumes, not bind mounts, for database and index data.
+- Before finishing any task, run `uv run ruff format .` first, then the exact CI sequence: uv run ruff check . && uv run ruff format --check . && uv run mypy src tests && uv run pytest. Show the full output. Never claim checks passed without running them.
+- When editing pyproject.toml, add to existing config; never replace or remove existing entries without asking.
