@@ -63,4 +63,3 @@ class SqlQueryLogRepository:
             .limit(limit)
         )
         return [_to_entity(row) for row in self._session.scalars(stmt).all()]
-

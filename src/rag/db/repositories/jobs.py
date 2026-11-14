@@ -75,4 +75,3 @@ class SqlJobRepository:
         row.error = error
         row.finished_at = finished_at
         self._session.flush()
-

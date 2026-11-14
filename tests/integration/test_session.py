@@ -23,9 +23,7 @@ def patched_session_local(engine: Engine, monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setattr(session_module, "SessionLocal", factory)
 
 
-def test_get_session_commits_on_success(
-    engine: Engine, patched_session_local: None
-) -> None:
+def test_get_session_commits_on_success(engine: Engine, patched_session_local: None) -> None:
     """Data written inside the context manager is visible after it exits."""
     with get_session() as session:
         session.execute(
@@ -40,9 +38,7 @@ def test_get_session_commits_on_success(
     assert count == 1
 
 
-def test_get_session_rolls_back_on_error(
-    engine: Engine, patched_session_local: None
-) -> None:
+def test_get_session_rolls_back_on_error(engine: Engine, patched_session_local: None) -> None:
     """An exception inside the context manager causes a rollback."""
     # Snapshot count before we start, so a row left by a previous test doesn't
     # cause a false failure. The rollback must not add any new rows.

@@ -125,4 +125,3 @@ def test_full_failure_transition(repo: SqlJobRepository, session: Session) -> No
 def test_missing_job_raises(repo: SqlJobRepository, session: Session) -> None:
     with pytest.raises(JobNotFoundError):
         repo.mark_running(uuid.uuid4(), RUN_TIME)
-
