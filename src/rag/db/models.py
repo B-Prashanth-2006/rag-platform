@@ -74,6 +74,10 @@ class ChunkOrm(Base):
     """ORM model for the ``chunks`` table."""
 
     __tablename__ = "chunks"
+    __table_args__ = (UniqueConstraint("document_id", "index", name="uq_chunks_document_id_index"),)
+    __table_args__ = (
+        UniqueConstraint("document_id", "index", name="uq_chunks_document_id_index"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True),

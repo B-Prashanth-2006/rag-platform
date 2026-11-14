@@ -96,6 +96,7 @@ def upgrade() -> None:
         sa.Column("embedding_model_version", sa.Text, nullable=True),
     )
     op.create_index("ix_chunks_document_id", "chunks", ["document_id"])
+    op.create_unique_constraint("uq_chunks_document_id_index", "chunks", ["document_id", "index"])
 
     # ingestion_jobs
     op.create_table(

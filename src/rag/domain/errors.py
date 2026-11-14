@@ -22,3 +22,28 @@ class DocumentNotFoundError(Exception):
     def __init__(self, doc_id: uuid.UUID) -> None:
         self.doc_id = doc_id
         super().__init__(f"No document found with id {doc_id}.")
+
+
+class DuplicateChunkIndexError(Exception):
+    """Raised when a chunk with the same (document_id, index) already exists."""
+
+    def __init__(self, document_id: uuid.UUID, index: int) -> None:
+        self.document_id = document_id
+        self.index = index
+        super().__init__(f"Chunk index {index} already exists for document {document_id}.")
+
+
+class JobNotFoundError(Exception):
+    """Raised when an ingestion job with the given id cannot be found."""
+
+    def __init__(self, job_id: uuid.UUID) -> None:
+        self.job_id = job_id
+        super().__init__(f"No ingestion job found with id {job_id}.")
+
+
+class QueryLogNotFoundError(Exception):
+    """Raised when a query log entry with the given id cannot be found."""
+
+    def __init__(self, log_id: uuid.UUID) -> None:
+        self.log_id = log_id
+        super().__init__(f"No query log found with id {log_id}.")
