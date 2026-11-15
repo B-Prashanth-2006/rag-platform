@@ -117,3 +117,27 @@ class ExtractedDocument:
 
     pages: list[ExtractedPage]
     metadata: dict[str, Any]
+
+
+@dataclass
+class ChunkDraft:
+    """In-memory draft of a chunk before persistence.
+
+    Has no database IDs or timestamps; those are assigned when persisting.
+
+    Invariants (enforced in ``__post_init__``):
+    - ``index`` must be >= 0
+    - ``token_count`` must be > 0
+    """
+
+    index: int
+    text: str
+    page: int | None
+    section: str | None
+    token_count: int
+
+    def __post_init__(self) -> None:
+        if self.index < 0:
+            raise ValueError(f"index must be >= 0, got {self.index}")
+        if self.token_count <= 0:
+            raise ValueError(f"token_count must be > 0, got {self.token_count}")

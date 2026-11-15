@@ -15,6 +15,7 @@ from typing import Protocol, runtime_checkable
 
 from rag.domain.entities import (
     Chunk,
+    ChunkDraft,
     Document,
     DocumentStatus,
     ExtractedDocument,
@@ -134,12 +135,40 @@ class Extractor(Protocol):
         ...
 
 
+@runtime_checkable
+class TokenCounter(Protocol):
+    """Contract for counting, encoding, and decoding tokens."""
+
+    def count(self, text: str) -> int:
+        """Return the number of tokens in *text*."""
+        ...
+
+    def encode(self, text: str) -> list[int]:
+        """Convert *text* into a sequence of token IDs."""
+        ...
+
+    def decode(self, tokens: list[int]) -> str:
+        """Reconstruct text from a sequence of token IDs."""
+        ...
+
+
+@runtime_checkable
+class Chunker(Protocol):
+    """Contract for splitting an extracted document into chunk drafts."""
+
+    def chunk(self, doc: ExtractedDocument) -> list[ChunkDraft]:
+        """Split *doc* into contiguous chunk drafts with metadata."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
     "ChunkRepository",
+    "Chunker",
     "DocumentRepository",
     "Extractor",
     "JobRepository",
     "JobStatus",
     "QueryLogRepository",
+    "TokenCounter",
 ]

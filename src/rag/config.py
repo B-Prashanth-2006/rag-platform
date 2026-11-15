@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     db_max_overflow: int = 10
     # Ingestion limits
     max_upload_mb: int = 50
+    # Chunking settings
+    tokenizer_model: str = "BAAI/bge-small-en-v1.5"
+    chunker_strategy: str = "fixed"
+    chunk_size: int = 256
+    chunk_overlap: int = 32
 
 
 @lru_cache

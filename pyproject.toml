@@ -78,7 +78,15 @@ disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type annotations
-module = ["pymupdf.*", "docx.*", "bs4.*", "pytesseract.*", "PIL.*"]
+module = [
+    "pymupdf.*",
+    "docx.*",
+    "bs4.*",
+    "pytesseract.*",
+    "PIL.*",
+    "transformers.*",
+    "tokenizers.*",
+]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
