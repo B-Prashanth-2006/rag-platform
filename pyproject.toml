@@ -25,6 +25,8 @@ dependencies = [
     "transformers>=5.23.0",
     "tokenizers>=0.23.3",
     "torch>=2.15.0",
+    "faiss-cpu>=1.16.0",
+    "chromadb>=1.5.9",
 ]
 
 [dependency-groups]
