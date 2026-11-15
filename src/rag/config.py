@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     chunker_strategy: str = "fixed"
     chunk_size: int = 256
     chunk_overlap: int = 32
+    # Embedding settings
+    embedding_model: str = "BAAI/bge-small-en-v1.5"
+    embedding_device: str | None = None
+    embedding_batch_size: int = 32
+    embedding_cache_enabled: bool = True
+    embedding_cache_path: str = "data/embeddings_cache.db"
 
 
 @lru_cache

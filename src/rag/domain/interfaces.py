@@ -18,6 +18,7 @@ from rag.domain.entities import (
     ChunkDraft,
     Document,
     DocumentStatus,
+    EmbeddingModelInfo,
     ExtractedDocument,
     IngestionJob,
     JobStatus,
@@ -161,11 +162,30 @@ class Chunker(Protocol):
         ...
 
 
+@runtime_checkable
+class Embedder(Protocol):
+    """Contract for embedding passages and queries into vector representations."""
+
+    @property
+    def info(self) -> EmbeddingModelInfo:
+        """Return metadata about the embedding model."""
+        ...
+
+    def embed_passages(self, texts: list[str]) -> list[list[float]]:
+        """Generate normalized embedding vectors for a list of passage texts."""
+        ...
+
+    def embed_query(self, text: str) -> list[float]:
+        """Generate a normalized embedding vector for a single query text."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
     "ChunkRepository",
     "Chunker",
     "DocumentRepository",
+    "Embedder",
     "Extractor",
     "JobRepository",
     "JobStatus",

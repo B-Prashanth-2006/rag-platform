@@ -141,3 +141,13 @@ class ChunkDraft:
             raise ValueError(f"index must be >= 0, got {self.index}")
         if self.token_count <= 0:
             raise ValueError(f"token_count must be > 0, got {self.token_count}")
+
+
+@dataclass
+class EmbeddingModelInfo:
+    """Metadata identifying the embedding model and its characteristics."""
+
+    name: str
+    version: str
+    dimension: int
+    max_tokens: int
