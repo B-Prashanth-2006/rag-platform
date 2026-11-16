@@ -23,6 +23,9 @@ from rag.domain.entities import (
     IngestionJob,
     JobStatus,
     QueryLog,
+    RetrievalFilter,
+    RetrievalResult,
+    RetrievedChunk,
     SearchHit,
     VectorRecord,
 )
@@ -216,8 +219,72 @@ class VectorStore(Protocol):
         ...
 
 
+@runtime_checkable
+class Retriever(Protocol):
+    """Retrieval contract: given a query, return top-k chunks with diagnostic trace."""
+
+    def retrieve(
+        self,
+        query: str,
+        k: int,
+        filter: RetrievalFilter | None = None,
+    ) -> RetrievalResult:
+        """Retrieve up to *k* chunks matching *query*, optionally filtered."""
+        ...
+
+
+@runtime_checkable
+class ChunkLookup(Protocol):
+    """Hydration contract: fetch full Chunk entities by their IDs in order."""
+
+    def get_many(self, chunk_ids: list[uuid.UUID]) -> list[Chunk]:
+        """Return chunks in the requested order, silently skipping missing IDs."""
+        ...
+
+
+@runtime_checkable
+class SparseIndex(Protocol):
+    """Keyword search index contract."""
+
+    def add(self, chunks: list[Chunk]) -> None:
+        """Index a batch of chunks for keyword search."""
+        ...
+
+    def search(
+        self,
+        query: str,
+        k: int,
+        filter: RetrievalFilter | None = None,
+    ) -> list[tuple[uuid.UUID, float]]:
+        """Return up to *k* (chunk_id, score) pairs matching *query*, optionally filtered."""
+        ...
+
+    def delete_document(self, document_id: uuid.UUID) -> None:
+        """Remove all chunks belonging to *document_id*."""
+        ...
+
+    def count(self) -> int:
+        """Return the total number of live chunks in the index."""
+        ...
+
+
+@runtime_checkable
+class Reranker(Protocol):
+    """Reranking contract: score and reorder retrieved chunks against a query."""
+
+    def rerank(
+        self,
+        query: str,
+        chunks: list[RetrievedChunk],
+        top_k: int,
+    ) -> list[RetrievedChunk]:
+        """Score *chunks* against *query* and return the top *top_k* chunks."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
+    "ChunkLookup",
     "ChunkRepository",
     "Chunker",
     "DocumentRepository",
@@ -226,6 +293,9 @@ __all__ = [
     "JobRepository",
     "JobStatus",
     "QueryLogRepository",
+    "Reranker",
+    "Retriever",
+    "SparseIndex",
     "TokenCounter",
     "VectorStore",
 ]

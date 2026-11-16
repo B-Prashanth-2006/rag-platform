@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     faiss_hnsw_m: int = 32
     faiss_hnsw_ef_search: int = 64
     faiss_hnsw_ef_construction: int = 64
+    # Retrieval settings
+    retrieval_mode: str = "hybrid"
+    use_reranker: bool = False
+    candidate_k: int = 50
+    fusion_k: int = 10
+    rerank_candidates: int = 20
+    rrf_k: int = 60
+    bm25_k1: float = 1.5
+    bm25_b: float = 0.75
 
 
 @lru_cache

@@ -6,7 +6,7 @@ Plain dataclasses only — no SQLAlchemy imports, no external dependencies.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from typing import Any
@@ -172,3 +172,54 @@ class SearchHit:
 
     chunk_id: uuid.UUID
     score: float
+
+
+_VALID_RETRIEVAL_SOURCES = frozenset({"dense", "sparse", "fused", "reranked"})
+
+
+@dataclass
+class RetrievalFilter:
+    """Filter applied to retrieval stages to restrict matching chunks."""
+
+    document_ids: list[uuid.UUID] | None = None
+
+
+@dataclass
+class RetrievedChunk:
+    """A chunk retrieved from a retrieval stage with score and source attribution."""
+
+    chunk_id: uuid.UUID
+    document_id: uuid.UUID
+    text: str
+    page: int | None
+    section: str | None
+    score: float
+    source: str
+
+    def __post_init__(self) -> None:
+        if self.source not in _VALID_RETRIEVAL_SOURCES:
+            raise ValueError(
+                f"Invalid source '{self.source}'. Must be one of {_VALID_RETRIEVAL_SOURCES}"
+            )
+
+
+@dataclass
+class StageTrace:
+    """Diagnostic trace of an individual retrieval stage."""
+
+    stage: str
+    latency_ms: float
+    results: list[tuple[uuid.UUID, float]]
+
+
+@dataclass
+class RetrievalResult:
+    """Combined output of a retrieval pipeline or stage."""
+
+    chunks: list[RetrievedChunk]
+    trace: list[StageTrace] = field(default_factory=list)
+
+    @property
+    def top_score(self) -> float | None:
+        """Return the highest score among retrieved chunks, or None if empty."""
+        return self.chunks[0].score if self.chunks else None

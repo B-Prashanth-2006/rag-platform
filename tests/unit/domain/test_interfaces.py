@@ -505,3 +505,79 @@ class TestVectorStoreProtocol:
                 return 0
 
         assert not isinstance(IncompleteVectorStore(), VectorStore)
+
+
+# ---------------------------------------------------------------------------
+# Retrieval Protocols
+# ---------------------------------------------------------------------------
+
+
+class TestRetrieverProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.entities import RetrievalFilter, RetrievalResult
+        from rag.domain.interfaces import Retriever
+
+        class DummyRetriever:
+            def retrieve(
+                self,
+                query: str,
+                k: int,
+                filter: RetrievalFilter | None = None,
+            ) -> RetrievalResult:
+                return RetrievalResult(chunks=[], trace=[])
+
+        assert isinstance(DummyRetriever(), Retriever)
+
+
+class TestChunkLookupProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.interfaces import ChunkLookup
+
+        class DummyChunkLookup:
+            def get_many(self, chunk_ids: list[uuid.UUID]) -> list[Chunk]:
+                return []
+
+        assert isinstance(DummyChunkLookup(), ChunkLookup)
+
+
+class TestSparseIndexProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.entities import RetrievalFilter
+        from rag.domain.interfaces import SparseIndex
+
+        class DummySparseIndex:
+            def add(self, chunks: list[Chunk]) -> None:
+                pass
+
+            def search(
+                self,
+                query: str,
+                k: int,
+                filter: RetrievalFilter | None = None,
+            ) -> list[tuple[uuid.UUID, float]]:
+                return []
+
+            def delete_document(self, document_id: uuid.UUID) -> None:
+                pass
+
+            def count(self) -> int:
+                return 0
+
+        assert isinstance(DummySparseIndex(), SparseIndex)
+
+
+class TestRerankerProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.entities import RetrievedChunk
+        from rag.domain.interfaces import Reranker
+
+        class DummyReranker:
+            def rerank(
+                self,
+                query: str,
+                chunks: list[RetrievedChunk],
+                top_k: int,
+            ) -> list[RetrievedChunk]:
+                return []
+
+        assert isinstance(DummyReranker(), Reranker)
