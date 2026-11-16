@@ -19,6 +19,7 @@ data/indexes/*
 !data/indexes/.gitkeep
 *.faiss
 *.index
+*.sqlite3
 .cache/
 models/
 

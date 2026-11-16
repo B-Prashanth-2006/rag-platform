@@ -34,6 +34,14 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 32
     embedding_cache_enabled: bool = True
     embedding_cache_path: str = "data/embeddings_cache.db"
+    # Vector store settings
+    vector_store_backend: str = "faiss"
+    vector_dimension: int = 384
+    vector_index_dir: str = "data/indexes"
+    faiss_index_type: str = "flat"
+    faiss_hnsw_m: int = 32
+    faiss_hnsw_ef_search: int = 64
+    faiss_hnsw_ef_construction: int = 64
 
 
 @lru_cache

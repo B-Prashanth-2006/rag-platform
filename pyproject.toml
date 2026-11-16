@@ -89,6 +89,8 @@ module = [
     "PIL.*",
     "transformers.*",
     "tokenizers.*",
+    "faiss.*",
+    "chromadb.*",
 ]
 ignore_missing_imports = true
 

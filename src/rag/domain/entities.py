@@ -151,3 +151,24 @@ class EmbeddingModelInfo:
     version: str
     dimension: int
     max_tokens: int
+
+
+@dataclass
+class VectorRecord:
+    """A vector embedding with its chunk and document metadata."""
+
+    chunk_id: uuid.UUID
+    vector: list[float]
+    document_id: uuid.UUID
+    metadata: dict[str, str | int | float | bool]
+
+
+@dataclass
+class SearchHit:
+    """A search result returned by a vector store.
+
+    Scores represent cosine similarity in [-1, 1], where higher score = more similar.
+    """
+
+    chunk_id: uuid.UUID
+    score: float

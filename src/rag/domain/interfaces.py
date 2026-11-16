@@ -23,6 +23,8 @@ from rag.domain.entities import (
     IngestionJob,
     JobStatus,
     QueryLog,
+    SearchHit,
+    VectorRecord,
 )
 
 
@@ -180,6 +182,40 @@ class Embedder(Protocol):
         ...
 
 
+@runtime_checkable
+class VectorStore(Protocol):
+    """Contract for persisting and similarity searching vector embeddings."""
+
+    def add(self, records: list[VectorRecord]) -> None:
+        """Insert or replace vector records."""
+        ...
+
+    def search(
+        self,
+        vector: list[float],
+        k: int,
+        filter: dict[str, str | int | float | bool] | None = None,
+    ) -> list[SearchHit]:
+        """Return up to *k* nearest vector records, optionally filtered by metadata."""
+        ...
+
+    def delete_chunks(self, chunk_ids: list[uuid.UUID]) -> None:
+        """Remove vectors matching the given chunk IDs."""
+        ...
+
+    def delete_document(self, document_id: uuid.UUID) -> None:
+        """Remove all vectors associated with *document_id*."""
+        ...
+
+    def count(self) -> int:
+        """Return the total number of live vectors in the store."""
+        ...
+
+    def persist(self) -> None:
+        """Flush in-memory state or write index to disk."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
     "ChunkRepository",
@@ -191,4 +227,5 @@ __all__ = [
     "JobStatus",
     "QueryLogRepository",
     "TokenCounter",
+    "VectorStore",
 ]

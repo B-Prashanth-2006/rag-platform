@@ -74,3 +74,12 @@ class ExtractionError(Exception):
     def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(message)
+
+
+class DimensionMismatchError(Exception):
+    """Raised when vector dimensions do not match the vector store's expected dimension."""
+
+    def __init__(self, expected: int, got: int) -> None:
+        self.expected = expected
+        self.got = got
+        super().__init__(f"Expected vector dimension {expected}, got {got}.")

@@ -327,3 +327,37 @@ class TestIngestionErrors:
         err = ExtractionError("Corrupt PDF file")
         assert err.message == "Corrupt PDF file"
         assert "Corrupt PDF file" in str(err)
+
+    def test_dimension_mismatch_error(self) -> None:
+        from rag.domain.errors import DimensionMismatchError
+
+        err = DimensionMismatchError(expected=384, got=512)
+        assert err.expected == 384
+        assert err.got == 512
+        assert "Expected vector dimension 384, got 512." in str(err)
+
+
+class TestVectorStoreEntities:
+    def test_vector_record_instantiation(self) -> None:
+        from rag.domain.entities import VectorRecord
+
+        cid = uuid.uuid4()
+        did = uuid.uuid4()
+        rec = VectorRecord(
+            chunk_id=cid,
+            vector=[0.1, 0.2, 0.3],
+            document_id=did,
+            metadata={"source": "doc.pdf"},
+        )
+        assert rec.chunk_id == cid
+        assert rec.vector == [0.1, 0.2, 0.3]
+        assert rec.document_id == did
+        assert rec.metadata == {"source": "doc.pdf"}
+
+    def test_search_hit_instantiation(self) -> None:
+        from rag.domain.entities import SearchHit
+
+        cid = uuid.uuid4()
+        hit = SearchHit(chunk_id=cid, score=0.95)
+        assert hit.chunk_id == cid
+        assert hit.score == 0.95

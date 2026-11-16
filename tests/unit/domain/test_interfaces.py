@@ -458,3 +458,50 @@ class TestExtractorProtocol:
                 return True
 
         assert not isinstance(IncompleteExtractor(), Extractor)
+
+
+# ---------------------------------------------------------------------------
+# VectorStore Protocol
+# ---------------------------------------------------------------------------
+
+
+class TestVectorStoreProtocol:
+    def test_protocol_conformance(self) -> None:
+        from rag.domain.entities import SearchHit, VectorRecord
+        from rag.domain.interfaces import VectorStore
+
+        class DummyVectorStore:
+            def add(self, records: list[VectorRecord]) -> None:
+                pass
+
+            def search(
+                self,
+                vector: list[float],
+                k: int,
+                filter: dict[str, str | int | float | bool] | None = None,
+            ) -> list[SearchHit]:
+                return []
+
+            def delete_chunks(self, chunk_ids: list[uuid.UUID]) -> None:
+                pass
+
+            def delete_document(self, document_id: uuid.UUID) -> None:
+                pass
+
+            def count(self) -> int:
+                return 0
+
+            def persist(self) -> None:
+                pass
+
+        dummy = DummyVectorStore()
+        assert isinstance(dummy, VectorStore)
+
+    def test_protocol_rejection_missing_methods(self) -> None:
+        from rag.domain.interfaces import VectorStore
+
+        class IncompleteVectorStore:
+            def count(self) -> int:
+                return 0
+
+        assert not isinstance(IncompleteVectorStore(), VectorStore)
