@@ -210,6 +210,7 @@ class StageTrace:
     stage: str
     latency_ms: float
     results: list[tuple[uuid.UUID, float]]
+    invalid_citations: int = 0
 
 
 @dataclass
@@ -262,5 +263,5 @@ class Answer:
 class AnswerEvent:
     """An event emitted while streaming an answer."""
 
-    kind: Literal["token", "citations", "done"]
+    kind: Literal["token", "citations", "done", "error"]
     payload: str | list[Citation] | None = None

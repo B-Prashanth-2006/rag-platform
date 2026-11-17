@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4o-mini"
     openai_api_key: str | None = None
     context_token_budget: int = 3000
+    min_score_reranked: float = 0.5
+    min_score_dense: float = 0.0
+    generation_refusal_text: str = "I could not find this in the provided documents."
 
 
 @lru_cache

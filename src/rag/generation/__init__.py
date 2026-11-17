@@ -6,10 +6,12 @@ from rag.generation.fake import FakeLLM
 from rag.generation.fakes import InMemoryDocumentLookup
 from rag.generation.prompts import PROMPT_VERSION, SYSTEM_PROMPT, build_messages
 from rag.generation.providers import OllamaLLM, OpenAICompatibleLLM
+from rag.generation.service import GenerationService
 
 __all__ = [
     "ContextBuilder",
     "FakeLLM",
+    "GenerationService",
     "InMemoryDocumentLookup",
     "LLMFactory",
     "OllamaLLM",
