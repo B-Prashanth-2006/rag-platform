@@ -9,7 +9,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 
 class DocumentStatus(StrEnum):
@@ -223,3 +223,44 @@ class RetrievalResult:
     def top_score(self) -> float | None:
         """Return the highest score among retrieved chunks, or None if empty."""
         return self.chunks[0].score if self.chunks else None
+
+
+@dataclass
+class LLMMessage:
+    """A message exchanged with a language model."""
+
+    role: Literal["system", "user", "assistant"]
+    content: str
+
+
+@dataclass
+class Citation:
+    """A source passage cited in a generated answer."""
+
+    index: int
+    chunk_id: uuid.UUID
+    document_id: uuid.UUID
+    document_name: str
+    page: int | None
+    section: str | None
+    text: str
+
+
+@dataclass
+class Answer:
+    """Generated answer with source citations and retrieval diagnostics."""
+
+    text: str
+    citations: list[Citation]
+    refused: bool
+    top_score: float | None
+    trace: list[StageTrace]
+    prompt_version: str
+
+
+@dataclass
+class AnswerEvent:
+    """An event emitted while streaming an answer."""
+
+    kind: Literal["token", "citations", "done"]
+    payload: str | list[Citation] | None = None

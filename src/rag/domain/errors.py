@@ -83,3 +83,15 @@ class DimensionMismatchError(Exception):
         self.expected = expected
         self.got = got
         super().__init__(f"Expected vector dimension {expected}, got {got}.")
+
+
+class LLMUnavailableError(Exception):
+    """Raised when a language-model provider cannot complete a request."""
+
+    def __init__(self, message: str) -> None:
+        self.message = message
+        super().__init__(message)
+
+
+class LLMTimeoutError(LLMUnavailableError):
+    """Raised when a language-model provider request times out."""

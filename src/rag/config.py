@@ -54,6 +54,16 @@ class Settings(BaseSettings):
     reranker_model: str = "BAAI/bge-reranker-base"
     reranker_device: str | None = None
     reranker_batch_size: int = 32
+    # Generation settings
+    llm_provider: str = "ollama"
+    llm_timeout: float = 60.0
+    llm_temperature: float = 0.0
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_model: str = "llama3.2"
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
+    openai_api_key: str | None = None
+    context_token_budget: int = 3000
 
 
 @lru_cache

@@ -10,6 +10,7 @@ Rule: this module imports nothing from other ``rag`` packages.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
@@ -22,6 +23,7 @@ from rag.domain.entities import (
     ExtractedDocument,
     IngestionJob,
     JobStatus,
+    LLMMessage,
     QueryLog,
     RetrievalFilter,
     RetrievalResult,
@@ -282,16 +284,40 @@ class Reranker(Protocol):
         ...
 
 
+@runtime_checkable
+class LLM(Protocol):
+    """Text generation contract for provider implementations."""
+
+    def generate(self, messages: list[LLMMessage]) -> str:
+        """Return a complete response for the given conversation."""
+        ...
+
+    def stream(self, messages: list[LLMMessage]) -> Iterator[str]:
+        """Yield response text as it becomes available."""
+        ...
+
+
+@runtime_checkable
+class DocumentLookup(Protocol):
+    """Resolve document IDs to display names."""
+
+    def get_names(self, ids: list[uuid.UUID]) -> dict[uuid.UUID, str]:
+        """Return names for found document IDs."""
+        ...
+
+
 # Re-export JobStatus so callers can import it alongside JobRepository.
 __all__ = [
     "ChunkLookup",
     "ChunkRepository",
     "Chunker",
+    "DocumentLookup",
     "DocumentRepository",
     "Embedder",
     "Extractor",
     "JobRepository",
     "JobStatus",
+    "LLM",
     "QueryLogRepository",
     "Reranker",
     "Retriever",
