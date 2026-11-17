@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     rrf_k: int = 60
     bm25_k1: float = 1.5
     bm25_b: float = 0.75
+    reranker_model: str = "BAAI/bge-reranker-base"
+    reranker_device: str | None = None
+    reranker_batch_size: int = 32
 
 
 @lru_cache
